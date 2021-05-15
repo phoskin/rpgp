@@ -2,7 +2,7 @@
 #
 # BSD 3-Clause License
 #
-# Copyright (c) 2021, Peter Hoskin <pete@hoskin.cc>
+# Copyright (c) 2021, Peter Hoskin <peter@hoskin.cc>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -89,6 +89,7 @@ then
 	echo "    Text file that contains your passphrase"
 	echo "    This is handed to gpg --passphrase-file <passphrase file>"
 	echo "    Maybe read GPG's manual if you don't know what this is"
+	echo "    Required always in decrypt mode"
 	echo
 	echo " Fun facts:"
 	echo "  - I coded in a Jedi joke"
