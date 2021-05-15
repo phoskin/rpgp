@@ -1,0 +1,47 @@
+# rpgp
+Pete's Grand Protector (PGP) - Recursive Edition - LOL!
+We'll recursively encrypt or decrypt files with GPG
+
+# Usage
+OMG HELP!!!1
+
+Okey, time to read the manual:
+
+ -i <directory>
+    Input directory. Must exist. Required always
+ -o <directory>
+    Output directory. Must exist. Required always
+
+Encrypt mode:
+ -e
+    Obvs we want to turn on encrypt mode
+ -u <username>
+    Username to pass to gpg -u <username>
+    Maybe read GPG's manual if you don't know what this is
+    Required always in encrypt mode
+
+ Fun facts:
+  - Contents of the output directory will be overwritten
+  - I ran out of things to say. Oops!
+
+Decrypt mode:
+ -d
+    Obvs we want to turn on decrypt mode
+ -p <passphrase file>
+    Text file that contains your passphrase
+    This is handed to gpg --passphrase-file <passphrase file>
+    Maybe read GPG's manual if you don't know what this is
+
+ Fun facts:
+  - I coded in a Jedi joke
+  - GPG is annoying because you cannot turn off the summary of your key
+  - Contents of the output directory will be overwritten
+  - If you try to use encrypt mode and decrypt mode, you're an idiet
+
+Other things I have:
+ -h
+    You're probably surprised by this, but I wrote a manual
+ -v
+    Turns on verbosity
+ -x
+    Turns on extra verbosity
