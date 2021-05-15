@@ -29,6 +29,7 @@ Decrypt mode:
     Text file that contains your passphrase
     This is handed to gpg --passphrase-file <passphrase file>
     Maybe read GPG's manual if you don't know what this is
+    Required always in decrypt mode
 
  Fun facts:
   - I coded in a Jedi joke
