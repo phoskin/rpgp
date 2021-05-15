@@ -118,20 +118,6 @@ logError() {
 	exit 1
 }
 
-# Check for weirdness in /tmp
-if [[ -f $dirlist ]]
-then
-	logError "$dirlist exists?! Please check \`ps auwwx\` for other instances of this script, and if safe, remove $dirlist"
-fi
-if [[ -f $filelist ]]
-then
-	logError "$filelist exists?! Please check \`ps auwwx\` for other instances of this script, and if safe, remove $dirlist"
-fi
-if [[ ! -d /tmp ]]
-then
-	logError "/tmp does not exist? Ummm"
-fi
-
 # GPG validation
 
 # Error validate decrypt mode
