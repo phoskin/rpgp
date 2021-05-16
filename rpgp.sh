@@ -38,7 +38,7 @@ verbose=0
 debug=0
 
 # Examine cmdline arguments with getopts
-while getopts "i:o:u:p:edhv" arg;
+while getopts "i:o:u:p:edhxv" arg;
 do
 	case $arg in
 		i) indir=$OPTARG;;
@@ -115,7 +115,7 @@ fi
 
 # Error handling function - print the script name then the supplied text when called, then exit in error
 logError() {
-	echo "$0: PID $BASHPID $@"
+	echo "$0: $@"
 	exit 1
 }
 
@@ -128,7 +128,7 @@ then
 	then
 		logError "illegal combination -d (decrypt) & -e (encrypt)"
 	fi
-	if [ -z $passphrase ]
+	if [[ -z $passphrase ]]
 	then
 		logError "required paramater -p (passphrase file) is missing"
 	fi
@@ -141,18 +141,18 @@ fi
 # Error validate encrypt mode
 if [ $encrypt -eq 1 ]
 then
-	if [ -z $username ]
+	if [[ -z $username ]]
 	then
 		logError "required parameter -u (PGP username) is missing"
 	fi
 fi
 
 # Error validate paths
-if [ -z $indir ]
+if [[ -z $indir ]]
 then
 	logError "required paramater -i is missing - I need an input directory"
 fi
-if [ -z $outdir ]
+if [[ -z $outdir ]]
 then
 	logError "required paramater -o is missing - I need an output directory"
 fi
@@ -165,6 +165,7 @@ then
 	logError "output directory does not exist - $outdir"
 fi
 
+# End the Error Handling
 ## ERRROR ERRROR ERRROR ERRROR ERRROR ERRROR ERRROR 
 ## ERRROR ERRROR ERRROR ERRROR ERRROR ERRROR ERRROR 
 ## ERRROR ERRROR ERRROR ERRROR ERRROR ERRROR ERRROR 
@@ -184,7 +185,12 @@ fi
 
 # PWD Preservation - we need to cd to the indir but lets go back to the pwd at the end
 origpwd=`pwd`
-cd $indir
+cd "$indir"
+if [ $debug -eq 1 ]
+then
+	echo
+	echo "PWD       : `pwd`"
+fi
 
 # Explain what we're doing
 echo 
@@ -202,20 +208,24 @@ then
 	# Loop around every directory - main loop!
 	find . -type d -print0 | while IFS= read -r -d '' inpath;
 	do
-		# Trim the prefixed /
-		inpath=`echo $inpath | cut -c3-`
+		# Trim the prefixed . except when we're root
+		if [[ ! $inpath = "." ]]
+		then
+			inpath=`echo $inpath | cut -c3-`
+		fi
 		# Append / but not if we're in the root folder
-		if [ ! -z $inpath ]
+		if [[ ! -z $inpath ]]
 		then
 			inpath=`echo $inpath/`
 		fi
 		# Replicate the input directory path in the output directory
 		outpath=`echo "$outdir/$inpath"`
 		
+		# Handle verbosity
 		if [ $debug -eq 1 ]
 		then
-			echo "inpath : $inpath"
-			echo "outpath: $outpath"
+			echo "inpath   : $inpath"
+			echo "outpath  : $outpath"
 		fi
 		if [ $verbose -eq 1 ]
 		then
@@ -223,23 +233,27 @@ then
 		fi
 		
 		# Create the destination directory
-		mkdir -p $outpath
+		mkdir -p "$outpath"
 		
 		# Loop around every file in the current directory
-		find $inpath -maxdepth 1 -type f -print0 | while IFS= read -r -d '' infile;
+		find "$inpath" -maxdepth 1 -type f -print0 | while IFS= read -r -d '' infile;
 		do
 			# I forgot why this was necessary lol!
 			infile=`basename "$infile"`
 			
+			# Handle verbosity
+			if [ $verbose -eq 1 ]
+			then
+				echo "File     : $infile"
+			fi
 			if [ $debug -eq 1 ]
 			then
-				echo "infile : $infile"
-				echo "tmpfile: $inpath$infile.gpg"
-				echo "outfile: $outpath$infile.gpg"
+				echo "tmpfile  : $inpath$infile.gpg"
+				echo "outfile  : $outpath$infile.gpg"
 			fi
 			
-			# Encrypt
-			gpg -e -r $username "$inpath$infile"
+			# Run GPG
+			gpg -e --bzip2-compress-level 9 -r $username "$inpath$infile"
 			exitcode=$?
 			if [ ! $exitcode -eq "0" ]
 			then
@@ -272,27 +286,45 @@ then
 		# Trim the prefixed /
 		inpath=`echo $inpath | cut -c3-`
 		# Append a /
-		if [ ! -z $inpath ]
+		if [[ ! -z $inpath ]]
 		then
 			inpath=`echo $inpath/`
 		fi
 		# Replicate the input directory path in the output directory
 		outpath=`echo "$outdir/$inpath"`
 		
+		# Handle verbosity
+		if [ $debug -eq 1 ]
+		then
+			echo "inpath   : $inpath"
+			echo "outpath  : $outpath"
+		fi
 		if [ $verbose -eq 1 ]
 		then
 			echo "Directory: $inpath"
 		fi
+		
 		# Create the destination directory
-		mkdir -p $outpath
+		mkdir -p "$outpath"
 		
 		# Loop around every file in the current directory
-		find $inpath -maxdepth 1 -type f -print0 | while IFS= read -r -d '' infile;
+		find "$inpath" -maxdepth 1 -type f -print0 | while IFS= read -r -d '' infile;
 		do
 			# I forgot why this was necessary lol!
 			infile=`basename "$infile"`
 			# Trim .gpg from the filename for the output
 			outfile=`echo $outpath$infile | sed 's/.\{4\}$//'`
+			
+			# Handle verbosity
+			if [ $verbose -eq 1 ]
+			then
+				echo "File     : $infile"
+			fi
+			if [ $debug -eq 1 ]
+			then
+				echo "tmpfile  : $inpath$infile.gpg"
+				echo "outfile  : $outpath$infile.gpg"
+			fi
 			
 			# Like a Jedi, we're using the force - always!
 			# If the destination exists, delete it! Otherwise GPG will prompt for y/n input
@@ -301,6 +333,7 @@ then
 				rm "$outfile"
 			fi
 			
+			# Run GPG
 			gpg -d --passphrase-file "$passphrase" -o "$outfile" "$inpath$infile"
 			exitcode=$?
 			if [ ! $exitcode -eq "0" ]
@@ -312,4 +345,4 @@ then
 fi
 
 # PWD Preservation - we need to cd to the indir but lets go back to the pwd at the end
-cd $origpwd
+cd "$origpwd"
